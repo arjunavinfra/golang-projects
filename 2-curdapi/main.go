@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"math/rand"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -35,6 +37,7 @@ func deleteMovie(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
+	json.NewEncoder(w).Encode(movies)
 }
 
 func getMovie(w http.ResponseWriter, r *http.Request) {
@@ -47,13 +50,22 @@ func getMovie(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func createMovie(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var movie Movie
+	_ = json.NewDecoder(r.Body).Decode(&movie)
+	movie.ID = strconv.Itoa(rand.Intn(10000))
+	movies = append(movies, movie)
+	json.NewEncoder(w).Encode(movies)
+}
+
 func main() {
 	movies = append(movies, Movie{ID: "1", Isbn: "3244", Title: "IronMan", Director: &Director{Fristname: "john", LastName: "lucas"}})
 	movies = append(movies, Movie{ID: "2", Isbn: "6543", Title: "Spiderman", Director: &Director{Fristname: "john", LastName: "lucas"}})
 	r := mux.NewRouter()
 	r.HandleFunc("/movies", getMovies).Methods("GET")
 	r.HandleFunc("/movies/{id}", getMovie).Methods("GET")
-	// r.HandleFunc("/movies/", createMovie).Methods("POST")
+	r.HandleFunc("/movies/", createMovie).Methods("POST")
 	// r.HandleFunc("/movies/{id}", updateMovie).Methods("PUT")
 	r.HandleFunc("/movies/{id}", deleteMovie).Methods("DELETE")
 	log.Fatal(http.ListenAndServe(":8000", r))
