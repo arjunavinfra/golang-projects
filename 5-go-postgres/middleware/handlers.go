@@ -17,7 +17,7 @@ type response struct {
 	Message string `json:"message,omitempty"`
 }
 
-func CreateConnection() *sql.DB {
+func createConnection() *sql.DB {
 	const sqlConnectionString = "postgresql://28631a8e-b665-4ebd-bedb-9189f5f9a10e-user:pw-1df59d3d-e515-4dee-81b0-25c5962c4e2f@postgres-free-tier-v2020.gigalixir.com:5432/28631a8e-b665-4ebd-bedb-9189f5f9a10e"
 	db, err := sql.Open("postgres", sqlConnectionString)
 	if err != nil {
@@ -61,7 +61,7 @@ func GetStocks(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetAllStocks(w http.ResponseWriter, r *http.Request) {
-	allStocks, err := selectAllStocks()
+	allStocks, err := getAllStock()
 	if err := nil {
 		log.Fatal("Error in getting stocks")
 	}
@@ -79,7 +79,7 @@ func UpdateStocks(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal("Unable to decode the request body %v", err)
 	}
-	updateRow := UpdateStock(int64(id),stock)
+	updateRow := updateStock(int64(id),stock)
 	msg := fmt.Sprintf("Stock successfully updated row affected %v ",updateRow)
 
 	res := response{
@@ -90,5 +90,57 @@ func UpdateStocks(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteStocks(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id , err := strconv.Atoi(params["id"])
+	if err != nil {
+		log.Fatal("Unable to convert into integer")
+	}
+	deleteRow:=deleteStock(int64(id))
+	msg:= fmt.Sprintf("stock deleted successfully %s row affected",&deleteRow)
+	res:= response {
+		ID: int64(id),
+		Message: msg,
+	}
+	json.NewEncoder(w).Encode(res)
+}
+
+
+func insertStock(stock models.Stock) int64 {
+db:= createConnection()
+defer db.Close()
+sqlStatement := `INSERT INTO stock(name,price,company) value($1,$2,$3) RETURNING stockid`
+var id int64
+err:= db.Query(sqlStatement,stock.Name,stock.Price,stock.Company)
+if err != nil {
+	log.Fatal("Unable to decode the request body %v", err)
+}
+
+}
+
+func getStock(id int64) int64 {
+	db:= createConnection()
+	defer db.Close()
+	var stock models.Stock
+	sqlStatement := `SELECT * FROM stocks WHERE stock id = $1`
+	row := db.QueryRow(sqlStatement,id)
+	row.Scan(&stock.StockID,&stock.Name,&stock.Price,&stock.Company)
+	switch err {
+	case sql.ErrNoRows:
+			fmt.Printf("No rows where returned")
+	case nil:
+			return stock, nil
+
+	}
+}
+
+func getAllStock() ([]models.Stock , error) {
+
+}
+
+func updateStock(id int64, stock models.Stock) int64 {
+
+}
+
+func deleteStock() int64 {
 
 }
