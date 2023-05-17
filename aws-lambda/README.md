@@ -1,6 +1,6 @@
 go build main.go 
 
-zip function.zip main.go
+zip function.zip main
 
 trust-policy.json
 
