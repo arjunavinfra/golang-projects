@@ -7,12 +7,12 @@ import (
 )
 
 type myrequest struct {
-	Name string "json:name"
-	Age  int    `json:age`
+	Name string `json:"name"`
+	Age  int    `json:"age"`
 }
 
 type myresponse struct {
-	Message string "json:message"
+	Message string `json:"message"`
 }
 
 func hello(event myrequest) (myresponse, error) {
